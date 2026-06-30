@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motiac Luxury Homes — Admin Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;--gold-lt:#E2C46A;--dark:#0E1419;--ink:#141B22;
+  --slate:#1C2730;--muted:rgba(255,255,255,0.5);--soft:rgba(255,255,255,0.8);
+  --white:#fff;--green:#10B981;--red:#EF4444;--r:6px;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0f14;color:var(--soft);min-height:100vh}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0f14,#141B22)}
+.login-box{background:var(--ink);border:1px solid rgba(201,168,76,0.2);border-radius:var(--r);padding:40px;width:360px;text-align:center}
+.login-logo{width:60px;height:60px;background:var(--dark);border:2px solid var(--gold);border-radius:8px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center}
+.login-title{font-size:22px;font-weight:700;color:var(--white);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.login-box input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);padding:12px 16px;color:var(--white);font-size:14px;outline:none;transition:border-color 0.3s;margin-bottom:14px;font-family:inherit}
+.login-box input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:var(--dark);padding:13px;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;transition:background 0.3s}
+.login-btn:hover{background:var(--gold-lt)}
+.login-error{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+
+/* DASHBOARD */
+#dashboard{display:none}
+.topbar{background:var(--ink);border-bottom:1px solid rgba(201,168,76,0.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:16px;font-weight:700;color:var(--white);display:flex;align-items:center;gap:10px}
+.topbar-brand span{color:var(--gold);font-size:11px;display:block;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;line-height:1}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-user{font-size:12px;color:var(--muted)}
+.logout-btn{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);padding:7px 16px;border-radius:var(--r);font-size:12px;cursor:pointer;transition:all 0.3s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+.layout{display:flex;min-height:calc(100vh - 64px)}
+.sidebar{width:220px;background:var(--ink);border-right:1px solid rgba(255,255,255,0.06);padding:20px 0;flex-shrink:0}
+.nav-section{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:14px 20px 6px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s;border-left:3px solid transparent}
+.nav-item:hover{color:var(--white);background:rgba(255,255,255,0.04)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,0.06)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+
+.main{flex:1;padding:28px;overflow-y:auto}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--ink);border:1px solid rgba(255,255,255,0.06);border-radius:var(--r);padding:20px}
+.stat-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.stat-value{font-size:32px;font-weight:700;color:var(--white);line-height:1}
+.stat-sub{font-size:12px;color:var(--gold);margin-top:4px}
+
+.section-card{background:var(--ink);border:1px solid rgba(255,255,255,0.06);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
+.section-head{padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.section-title{font-size:15px;font-weight:700;color:var(--white)}
+.section-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.section-body{padding:22px}
+
+.btn{padding:9px 20px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.btn-gold{background:var(--gold);color:var(--dark)}.btn-gold:hover{background:var(--gold-lt)}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--soft)}.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-red{background:transparent;border:1px solid rgba(239,68,68,0.3);color:var(--red)}.btn-red:hover{background:rgba(239,68,68,0.1)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600}
+.fg input,.fg select,.fg textarea{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);padding:10px 13px;color:var(--white);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold)}
+.fg select option{background:var(--ink)}
+.fg textarea{resize:vertical;min-height:80px}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);font-weight:600}
+.tbl td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;color:var(--soft);vertical-align:middle}
+.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+.tbl tr:last-child td{border-bottom:none}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:3px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(16,185,129,0.15);color:var(--green)}
+.badge-gold{background:rgba(201,168,76,0.15);color:var(--gold)}
+.badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--ink);border:1px solid rgba(201,168,76,0.2);border-radius:var(--r);width:660px;max-width:96vw;max-height:92vh;overflow-y:auto}
+.modal-head{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--ink);z-index:1}
+.modal-title{font-size:17px;font-weight:700;color:var(--white)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:2px 6px}
+.modal-close:hover{color:var(--white)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:10px;justify-content:flex-end}
+
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--slate);border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);padding:14px 20px;font-size:13px;color:var(--white);box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.35s;display:flex;align-items:center;gap:10px;max-width:340px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+
+.loading{text-align:center;padding:48px;color:var(--muted)}
+.spinner{width:32px;height:32px;border:3px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px;color:var(--muted)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+
+.page-section{display:none}
+.page-section.active{display:block}
+
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .sidebar{display:none}
+  .form-grid{grid-template-columns:1fr}
+  .main{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 46 46" fill="none" width="36" height="36">
+        <path d="M4 32 L23 10 L42 32" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 32 L11 20 L23 30 L35 20 L35 32" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="20" y="26" width="3" height="3" fill="white" rx="0.5"/>
+        <rect x="24" y="26" width="3" height="3" fill="white" rx="0.5"/>
+        <rect x="20" y="30" width="3" height="3" fill="white" rx="0.5"/>
+        <rect x="24" y="30" width="3" height="3" fill="white" rx="0.5"/>
+      </svg>
+    </div>
+    <div class="login-title">Motiac Admin</div>
+    <div class="login-sub">Sign in to manage your listings</div>
+    <input type="email" id="loginEmail" placeholder="Email address">
+    <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <svg viewBox="0 0 46 46" fill="none" width="30" height="30">
+        <path d="M4 32 L23 10 L42 32" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 32 L11 20 L23 30 L35 20 L35 32" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="20" y="26" width="3" height="3" fill="white" rx="0.5"/>
+        <rect x="24" y="26" width="3" height="3" fill="white" rx="0.5"/>
+        <rect x="20" y="30" width="3" height="3" fill="white" rx="0.5"/>
+        <rect x="24" y="30" width="3" height="3" fill="white" rx="0.5"/>
+      </svg>
+      <div>Motiac Luxury Homes<span>Admin Dashboard</span></div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="showPage('overview',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+      </div>
+      <div class="nav-item" onclick="showPage('listings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Properties
+      </div>
+      <div class="nav-section">Settings</div>
+      <div class="nav-item" onclick="showPage('contact',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.46-.46a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>Contact Info
+      </div>
+      <div class="nav-item" onclick="showPage('ceo',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>CEO Profile
+      </div>
+      <div class="nav-section">Site</div>
+      <div class="nav-item" onclick="window.open('https://motiacluxuryhomes.vercel.app','_blank')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>View Live Site
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- OVERVIEW -->
+      <div id="pg-overview" class="page-section active">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Total Listings</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">All properties</div></div>
+          <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" id="s-avail">—</div><div class="stat-sub">Active listings</div></div>
+          <div class="stat-card"><div class="stat-label">Sold</div><div class="stat-value" id="s-sold">—</div><div class="stat-sub">Completed</div></div>
+          <div class="stat-card"><div class="stat-label">Locations</div><div class="stat-value">5</div><div class="stat-sub">Kuje, Asokoro, Kabusa, Idu, Lugbe</div></div>
+        </div>
+        <div class="section-card">
+          <div class="section-head">
+            <div><div class="section-title">Recent Properties</div><div class="section-sub">Latest listing entries</div></div>
+            <button class="btn btn-gold" onclick="openAdd()">+ Add Property</button>
+          </div>
+          <div id="recent-wrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- LISTINGS -->
+      <div id="pg-listings" class="page-section">
+        <div class="section-card">
+          <div class="section-head">
+            <div><div class="section-title">All Properties</div><div class="section-sub">Add, edit or remove listings</div></div>
+            <button class="btn btn-gold" onclick="openAdd()">+ Add Property</button>
+          </div>
+          <div id="listings-wrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- CONTACT -->
+      <div id="pg-contact" class="page-section">
+        <div class="section-card">
+          <div class="section-head"><div><div class="section-title">Contact Information</div><div class="section-sub">Changes reflect live on your website instantly</div></div></div>
+          <div class="section-body">
+            <div class="form-grid">
+              <div class="fg"><label>Phone 1</label><input type="text" id="c-phone1" placeholder="08032755697"></div>
+              <div class="fg"><label>Phone 2 / WhatsApp</label><input type="text" id="c-phone2" placeholder="08100513743"></div>
+              <div class="fg"><label>Email</label><input type="email" id="c-email" placeholder="motiacluxury@gmail.com"></div>
+              <div class="fg"><label>Instagram</label><input type="text" id="c-instagram" placeholder="@motiac_homes"></div>
+              <div class="fg"><label>Facebook</label><input type="text" id="c-facebook" placeholder="@motiac homes"></div>
+              <div class="fg"><label>TikTok</label><input type="text" id="c-tiktok" placeholder="@motiac_luxury_homes"></div>
+              <div class="fg full"><label>Office Address</label><input type="text" id="c-address" placeholder="Plot 299, Oluwafemi Street..."></div>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:10px">
+              <button class="btn btn-gold" onclick="saveContact()">Save Changes</button>
+              <button class="btn btn-outline" onclick="loadContact()">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CEO -->
+      <div id="pg-ceo" class="page-section">
+        <div class="section-card">
+          <div class="section-head"><div><div class="section-title">CEO Profile</div><div class="section-sub">Your profile shown on the website</div></div></div>
+          <div class="section-body">
+            <div class="form-grid">
+              <div class="fg"><label>Full Name</label><input type="text" id="ceo-name" placeholder="Moses Umoh"></div>
+              <div class="fg"><label>Title</label><input type="text" id="ceo-title" placeholder="CEO, Motiac Luxury Homes"></div>
+              <div class="fg full"><label>Bio</label><textarea id="ceo-bio" rows="4" placeholder="A visionary entrepreneur..."></textarea></div>
+              <div class="fg full"><label>Personal Quote</label><input type="text" id="ceo-quote" placeholder="My mission is to..."></div>
+            </div>
+            <div style="margin-top:20px">
+              <button class="btn btn-gold" onclick="saveCEO()">Save Profile</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="propModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">Add New Property</div>
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+      <div class="form-grid">
+        <div class="fg full"><label>Property Name *</label><input type="text" id="p-name" placeholder="e.g. 4-Bedroom Penthouse"></div>
+        <div class="fg"><label>Location *</label>
+          <select id="p-location">
+            <option value="">Select location</option>
+            <option value="kuje">Kuje</option>
+            <option value="asokoro">Asokoro</option>
+            <option value="kabusa">Kabusa</option>
+            <option value="idu">Idu</option>
+            <option value="lugbe">Lugbe</option>
+          </select>
+        </div>
+        <div class="fg"><label>Phase / Estate</label><input type="text" id="p-phase" placeholder="e.g. Magnificent Classic City · Phase 1"></div>
+        <div class="fg"><label>Price *</label><input type="text" id="p-price" placeholder="e.g. ₦8.5 Million"></div>
+        <div class="fg"><label>Size</label><input type="text" id="p-size" placeholder="e.g. 400 SQM"></div>
+        <div class="fg"><label>Property Type</label>
+          <select id="p-type"><option value="house">House / Duplex</option><option value="land">Land</option></select>
+        </div>
+        <div class="fg"><label>Budget Category</label>
+          <select id="p-budget">
+            <option value="low">Under ₦15M</option>
+            <option value="mid">₦15M - ₦50M</option>
+            <option value="high">Above ₦50M</option>
+          </select>
+        </div>
+        <div class="fg"><label>Status</label>
+          <select id="p-status">
+            <option value="available">Available</option>
+            <option value="sold">Sold</option>
+            <option value="reserved">Reserved</option>
+          </select>
+        </div>
+        <div class="fg"><label>Badge Label</label><input type="text" id="p-badge" placeholder="e.g. FCDA Approved"></div>
+        <div class="fg"><label>Badge Type</label>
+          <select id="p-badgetype">
+            <option value="approved">Green (FCDA Approved)</option>
+            <option value="sale">Gold (For Sale)</option>
+          </select>
+        </div>
+        <div class="fg full"><label>Location Details</label><input type="text" id="p-address" placeholder="e.g. Kuje Bridge after Military Checkpoint"></div>
+        <div class="fg full"><label>Property Image URL</label><input type="text" id="p-image" placeholder="Paste image link here"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" id="saveBtn" onclick="saveProp()">Save Property</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal" style="width:400px">
+    <div class="modal-head">
+      <div class="modal-title">Confirm Delete</div>
+      <button class="modal-close" onclick="document.getElementById('delModal').classList.remove('open')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--soft)">Are you sure you want to delete <strong id="del-name" style="color:white"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('delModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-red" onclick="confirmDel()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://bhqpmspbqyxilxsouulg.supabase.co';
+const SUPA_KEY = 'sb_publishable_aKYbObSHclXPI7_f6uiGYA_glLcv9vJ';
+
+let allListings = [];
+let deleteId = null;
+
+// ── SUPABASE HELPERS ──
+const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' };
+
+async function sbGet(table, params='') {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}${params}`, { headers });
+  return r.json();
+}
+async function sbPost(table, data) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+    method:'POST', headers:{...headers,'Prefer':'return=representation'}, body:JSON.stringify(data)
+  });
+  return r.json();
+}
+async function sbPatch(table, id, data) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method:'PATCH', headers:{...headers,'Prefer':'return=representation'}, body:JSON.stringify(data)
+  });
+  return r.json();
+}
+async function sbDelete(table, id) {
+  await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, { method:'DELETE', headers });
+}
+async function getSetting(key) {
+  const rows = await sbGet('settings', `?key=eq.${encodeURIComponent(key)}&select=value`);
+  return rows && rows.length ? rows[0].value : null;
+}
+async function upsertSetting(key, value) {
+  const existing = await sbGet('settings', `?key=eq.${encodeURIComponent(key)}&select=id`);
+  if (existing && existing.length) {
+    await fetch(`${SUPA_URL}/rest/v1/settings?key=eq.${encodeURIComponent(key)}`, {
+      method:'PATCH', headers, body: JSON.stringify({ value, updated_at: new Date().toISOString() })
+    });
+  } else {
+    await sbPost('settings', { key, value });
+  }
+}
+
+// ── AUTH (password stored in Supabase settings) ──
+const DEFAULT_EMAIL = 'motiacluxury@gmail.com';
+const DEFAULT_PASS  = 'Motiac2025!';
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Please enter email and password.'; return; }
+
+  const creds = await getSetting('admin_creds');
+  const okEmail = creds ? creds.email : DEFAULT_EMAIL;
+  const okPass  = creds ? creds.password : DEFAULT_PASS;
+
+  if (email === okEmail && pass === okPass) {
+    sessionStorage.setItem('motiac_admin', '1');
+    sessionStorage.setItem('motiac_user', email);
+    startDashboard(email);
+  } else {
+    errEl.textContent = 'Invalid email or password.';
+  }
+}
+
+function startDashboard(email) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('topbarUser').textContent = email;
+  loadAll();
+}
+
+function doLogout() {
+  sessionStorage.clear();
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+// Restore session
+if (sessionStorage.getItem('motiac_admin') === '1') {
+  startDashboard(sessionStorage.getItem('motiac_user') || 'Admin');
+}
+
+// ── NAVIGATION ──
+function showPage(page, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('pg-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  if (page === 'listings') renderTable();
+  if (page === 'contact') loadContact();
+  if (page === 'ceo') loadCEO();
+}
+
+// ── DATA ──
+async function loadAll() {
+  try {
+    const data = await sbGet('listings', '?order=created_at.desc');
+    allListings = Array.isArray(data) ? data : [];
+  } catch(e) { allListings = []; }
+  renderStats();
+  renderRecent();
+}
+
+function renderStats() {
+  document.getElementById('s-total').textContent = allListings.length;
+  document.getElementById('s-avail').textContent = allListings.filter(l=>l.status==='available').length;
+  document.getElementById('s-sold').textContent  = allListings.filter(l=>l.status==='sold').length;
+}
+
+function renderRecent() {
+  const el = document.getElementById('recent-wrap');
+  if (!allListings.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏠</div><p>No properties yet. Click "Add Property" to get started.</p></div>';
+    return;
+  }
+  el.innerHTML = tableHTML(allListings.slice(0,6), false);
+}
+
+function renderTable() {
+  const el = document.getElementById('listings-wrap');
+  if (!allListings.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏠</div><p>No properties yet.</p></div>';
+    return;
+  }
+  el.innerHTML = tableHTML(allListings, true);
+}
+
+function tableHTML(rows, actions) {
+  return `<table class="tbl">
+    <thead><tr>
+      <th>Property</th><th>Location</th><th>Price</th><th>Type</th><th>Status</th>
+      ${actions?'<th>Actions</th>':''}
+    </tr></thead>
+    <tbody>${rows.map(l=>`
+      <tr>
+        <td>
+          <div style="font-weight:600;color:white">${l.name}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px">${l.phase||''}</div>
+        </td>
+        <td style="text-transform:capitalize">${l.location||''}</td>
+        <td style="color:#C9A84C;font-weight:700">${l.price||''}</td>
+        <td style="text-transform:capitalize">${l.type||'house'}</td>
+        <td><span class="badge ${l.status==='available'?'badge-green':l.status==='sold'?'badge-red':'badge-gold'}">${l.status||'available'}</span></td>
+        ${actions?`<td><div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="openEdit('${l.id}')">Edit</button>
+          <button class="btn btn-red btn-sm" onclick="openDel('${l.id}','${(l.name||'').replace(/'/g,"\\'")}')">Delete</button>
+        </div></td>`:''}
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── MODAL ──
+function clearModal() {
+  ['p-name','p-phase','p-price','p-size','p-badge','p-image','p-address'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-location').value='';
+  document.getElementById('p-type').value='house';
+  document.getElementById('p-budget').value='low';
+  document.getElementById('p-status').value='available';
+  document.getElementById('p-badgetype').value='approved';
+  document.getElementById('edit-id').value='';
+}
+function openAdd() { clearModal(); document.getElementById('modal-title').textContent='Add New Property'; document.getElementById('propModal').classList.add('open'); }
+function openEdit(id) {
+  const l = allListings.find(x=>String(x.id)===String(id));
+  if(!l) return;
+  clearModal();
+  document.getElementById('modal-title').textContent = 'Edit Property';
+  document.getElementById('edit-id').value  = id;
+  document.getElementById('p-name').value   = l.name||'';
+  document.getElementById('p-phase').value  = l.phase||'';
+  document.getElementById('p-price').value  = l.price||'';
+  document.getElementById('p-size').value   = l.size||'';
+  document.getElementById('p-location').value  = l.location||'';
+  document.getElementById('p-type').value      = l.type||'house';
+  document.getElementById('p-budget').value    = l.budget||'low';
+  document.getElementById('p-status').value    = l.status||'available';
+  document.getElementById('p-badge').value     = l.badge||'';
+  document.getElementById('p-badgetype').value = l.badge_type||'approved';
+  document.getElementById('p-image').value  = l.image||'';
+  document.getElementById('p-address').value= l.address||'';
+  document.getElementById('propModal').classList.add('open');
+}
+function closeModal() { document.getElementById('propModal').classList.remove('open'); }
+
+// ── SAVE ──
+async function saveProp() {
+  const name     = document.getElementById('p-name').value.trim();
+  const location = document.getElementById('p-location').value;
+  const price    = document.getElementById('p-price').value.trim();
+  if (!name||!location||!price) { showToast('Name, Location and Price are required.','error'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.textContent='Saving...'; btn.disabled=true;
+
+  const data = {
+    name, location, price,
+    phase:      document.getElementById('p-phase').value.trim(),
+    size:       document.getElementById('p-size').value.trim(),
+    type:       document.getElementById('p-type').value,
+    budget:     document.getElementById('p-budget').value,
+    status:     document.getElementById('p-status').value,
+    badge:      document.getElementById('p-badge').value.trim(),
+    badge_type: document.getElementById('p-badgetype').value,
+    image:      document.getElementById('p-image').value.trim(),
+    address:    document.getElementById('p-address').value.trim(),
+  };
+
+  const editId = document.getElementById('edit-id').value;
+  try {
+    if (editId) {
+      await sbPatch('listings', editId, data);
+      const i = allListings.findIndex(l=>String(l.id)===String(editId));
+      if(i>-1) allListings[i]={...allListings[i],...data};
+      showToast('Property updated!','success');
+    } else {
+      const result = await sbPost('listings', data);
+      if(Array.isArray(result)&&result[0]) allListings.unshift(result[0]);
+      showToast('Property added!','success');
+    }
+    closeModal(); renderStats(); renderRecent(); renderTable();
+  } catch(e) { showToast('Error saving. Try again.','error'); }
+  btn.textContent='Save Property'; btn.disabled=false;
+}
+
+// ── DELETE ──
+function openDel(id,name){ deleteId=id; document.getElementById('del-name').textContent=name; document.getElementById('delModal').classList.add('open'); }
+async function confirmDel(){
+  if(!deleteId) return;
+  await sbDelete('listings',deleteId);
+  allListings=allListings.filter(l=>String(l.id)!==String(deleteId));
+  document.getElementById('delModal').classList.remove('open');
+  renderStats(); renderRecent(); renderTable();
+  showToast('Property deleted.','success');
+  deleteId=null;
+}
+
+// ── CONTACT ──
+async function loadContact(){
+  const d=await getSetting('contact'); if(!d) return;
+  document.getElementById('c-phone1').value   = d.phone1||'';
+  document.getElementById('c-phone2').value   = d.phone2||'';
+  document.getElementById('c-email').value    = d.email||'';
+  document.getElementById('c-address').value  = d.address||'';
+  document.getElementById('c-instagram').value= d.instagram||'';
+  document.getElementById('c-facebook').value = d.facebook||'';
+  document.getElementById('c-tiktok').value   = d.tiktok||'';
+}
+async function saveContact(){
+  await upsertSetting('contact',{
+    phone1:    document.getElementById('c-phone1').value.trim(),
+    phone2:    document.getElementById('c-phone2').value.trim(),
+    email:     document.getElementById('c-email').value.trim(),
+    address:   document.getElementById('c-address').value.trim(),
+    instagram: document.getElementById('c-instagram').value.trim(),
+    facebook:  document.getElementById('c-facebook').value.trim(),
+    tiktok:    document.getElementById('c-tiktok').value.trim(),
+  });
+  showToast('Contact info saved! Live site updated.','success');
+}
+
+// ── CEO ──
+async function loadCEO(){
+  const d=await getSetting('ceo'); if(!d) return;
+  document.getElementById('ceo-name').value  = d.name||'';
+  document.getElementById('ceo-title').value = d.title||'';
+  document.getElementById('ceo-bio').value   = d.bio||'';
+  document.getElementById('ceo-quote').value = d.quote||'';
+}
+async function saveCEO(){
+  await upsertSetting('ceo',{
+    name:  document.getElementById('ceo-name').value.trim(),
+    title: document.getElementById('ceo-title').value.trim(),
+    bio:   document.getElementById('ceo-bio').value.trim(),
+    quote: document.getElementById('ceo-quote').value.trim(),
+  });
+  showToast('CEO profile saved!','success');
+}
+
+// ── TOAST ──
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=(type==='success'?'✅ ':'❌ ')+msg;
+  t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')});
+});
+</script>
+</body>
+</html>
